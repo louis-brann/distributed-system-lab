@@ -27,6 +27,18 @@ class Message:
 		             "source": self.source}
 		return json.dumps(json_dict)
 
+    # Rich comparison operators
+    def __eq__(self, other):
+        return not self<other and not other<self
+    def __ne__(self, other):
+        return self<other or other<self
+    def __gt__(self, other):
+        return other.timestamp<self.timestamp
+    def __ge__(self, other):
+        return not self.timestamp<other.timestamp
+    def __le__(self, other):
+        return not other.timestamp<self.timestamp
+
 	def __repr__(self):
 		return "msg_type: " + self.msg_type + 
 				"\naction: " + self.action +
