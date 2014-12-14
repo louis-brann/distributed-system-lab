@@ -38,8 +38,14 @@ class Server:
                 break
             else:
                 #TODO lots
-                print "someshit"
-                
+                if int:
+                    add to ints
+                if lock:
+                    add to locks
+                if barrier:
+                    add to barriers
+                if source in clients:
+                    send_response_to_client()
 
 
     def add_message(self, message):
