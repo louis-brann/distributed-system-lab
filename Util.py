@@ -63,11 +63,11 @@ class Message:
         return self.timestamp
 
     def __repr__(self):
-        return "[msg_type: " + self.msg_type + \
-                "\naction: " + self.action + \
-                "\npayload: " + self.payload + \
-                "\ntimestamp: " + self.timestamp + \
-                "\nsource: " + self.source + "]\n"
+        return "[msg_type: " + str(self.msg_type) + \
+                "\naction: " + str(self.action) + \
+                "\npayload: " + str(self.payload) + \
+                "\ntimestamp: " + str(self.timestamp) + \
+                "\nsource: " + str(self.source) + "]\n"
 
 
 
