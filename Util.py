@@ -5,8 +5,6 @@
 
 import json, socket
 
-
-
 class Message:
     """
     Wrapper for JSON message passing between Clients and Servers, and 
@@ -20,21 +18,25 @@ class Message:
         self.timestamp = timestamp
         self.source = source
 
-    def send(self, socket, ip, port):
+    def send(self, ip, port):
         """
-        Sends message to specified IP address over UDP
+        Sends message to specified IP address and port over UDP
         """
+        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        message = self.make_json()
+        socket.sendto(message, (ip,port))
+        udp_socket.close()
 
-        packet = self.make_json()
-        socket.sendto(packet, (ip,port))
-
-    def receive(self, socket, port):
+    def receive(self, port):
         """
-        Receives message on specified socket over UDP
+        Receives message on specified port over UDP
         """
-
-        currentPacket, addr = udpSocket.recvfrom(packetSize)
-        return currentPacket
+        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        upd_socket.bind(("", port))
+        packet, addr = udp_socket.recvfrom(1024)
+        message = json.loads(packet)
+        udp_socket.close()
+        return message
 
     def make_json(self):
         """
