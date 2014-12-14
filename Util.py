@@ -3,7 +3,9 @@
 # Networks Lab 6 - Distributed System
 # Utility library
 
-import json
+import json, socket
+
+
 
 class Message:
     """
@@ -18,8 +20,26 @@ class Message:
         self.timestamp = timestamp
         self.source = source
 
-    # Package the message as a JSON string
+    def send(self, socket, ip, port):
+        """
+        Sends message to specified IP address over UDP
+        """
+
+        packet = self.make_json()
+        socket.sendto(packet, (ip,port))
+
+    def receive(self, socket, port):
+        """
+        Receives message on specified socket over UDP
+        """
+
+        currentPacket, addr = udpSocket.recvfrom(packetSize)
+        return currentPacket
+
     def make_json(self):
+        """
+        Package the message as a JSON string
+        """
         json_dict = {"msg_type": self.msg_type, 
                      "action": self.action, 
                      "payload": self.payload,
@@ -48,5 +68,6 @@ class Message:
                 "\npayload: " + self.payload + \
                 "\ntimestamp: " + self.timestamp + \
                 "\nsource: " + self.source + "]\n"
+
 
 
