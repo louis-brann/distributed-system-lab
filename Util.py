@@ -13,7 +13,7 @@ class Message:
     between Servers
     """
 
-    def __init__(self, msg_type, action, payload, timestamp, source):
+    def __init__(self, msg_type="", action="", payload={}, timestamp=0, source=""):
         self.msg_type = msg_type
         self.action = action
         self.payload = payload
