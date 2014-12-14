@@ -5,8 +5,8 @@
 
 import Queue
 import json
+from Util import *
 
-client_port = 6443
 
 class Server:
     """
@@ -26,53 +26,6 @@ class Server:
         self._my_ip = my_ip
         self._current_time = 0
 
-    def process_messages(self):
-        """
-        Process all messages in the message_queue before the earliest
-        entry in timestamps
-        """
-        min_timestamp = min(self.timestamps.values())
-
-        # While we have messages, and while messages are earlier than timestamp
-        while not self.message_queue.empty():
-            next_message = self.message_queue.get()
-            if next_message.timestamp >=  min_timestamp:
-                self.message_queue.put(next_message)
-                break
-            else:
-                process_one_message(next_message)
-
-    def process_one_message(self, message):
-        if message.msg_type.equals("int"):
-            new_message = process_int(message)
-        elif lock:
-            new_message = process_lock(message)
-        elif barrier:
-            new_message = process_barrier(message)
-        else:
-            new_message = message
-            message_success = false
-
-        if source in clients:
-            dest = message.source
-            message.source = self._my_ip
-            message.send(dest, client_port)
-
-
-    def add_message(self, message):
-        """
-        Parses a Message object and appropriately adds it to Server
-        """
-        self._current_time += 1
-
-        if message.source in self._clients:
-            self.timestamps[self._my_ip] = self._current_time
-            self.message_queue.put(message)
-
-        if message.source in self._servers:
-            self.timestamps[message.source] = message.timestamp
-            self.message_queue.put(message)
-
     def process_int(self, message):
         """
         Input: Received message that needs to be processed
@@ -85,25 +38,25 @@ class Server:
         int_value = message.payload["value"]
 
         # Create
-        if message.action.equals("create"):
+        if message.action == "create":
             message_success = int_name not in self.ints.keys()
             if message_success:
                 self.ints[int_name] = int_value
 
         # Get
-        elif message.action.equals("get"):
+        elif message.action == "get":
             message_success = int_name in self.ints.keys()
             if message_success:
                 message.payload["value"] = self.ints[int_name]
 
         # Set 
-        elif message.action.equals("set"):
+        elif message.action == "set":
             message_success = int_name in self.ints.keys()
             if message_success:
                 self.ints[int_name] = int_value
 
         # Destroy 
-        elif message.action.equals("destroy"):
+        elif message.action == "destroy":
             message_success = int_name in self.ints.keys()
             if message_success:
                 del self.ints[int_name]
@@ -118,14 +71,72 @@ class Server:
 
     def process_lock(self, messsage):
         print "locks"
-        if message.action.equals("create"):
-        elif message.action.equals("request"):
-        elif message.action.equals("destroy"):
-
+        if message.action == "create":
+            print "lock"
+        elif message.action == "request":
+            print "lock"
+        elif message.action == "destroy":
+            print "lock"
     def process_barrier(self, message):
         print "barriers"
-        if message.action.equals("create"):
-        if message.action.equals("wait"):
+        if message.action == "create":
+            print "barrier"
+        if message.action == "wait":
+            print "barrier"
+
+    def process_one_message(self, message):
+        """
+        Input: Message to process
+        Output: none
+        Side effects: Changes server data based on what Message specified
+                      and sends message back if needed
+        """
+        if message.msg_type == "int":
+            new_message = self.process_int(message)
+        elif message.msg_type == "lock":
+            new_message = self.process_lock(message)
+        elif message.msg_type == "barrier":
+            new_message = self.process_barrier(message)
+        else:
+            new_message = message
+            message_success = false
+
+        if message.source in self._clients:
+            dest = message.source
+            message.source = self._my_ip
+            send_message(message, dest, client_port)
+
+    def process_messages(self):
+        """
+        Process all messages in the message_queue before the earliest
+        entry in timestamps
+        """
+        min_timestamp = min(self.timestamps.values())
+
+        # While we have messages, and while messages are earlier than timestamp
+        while not self.message_queue.empty():
+            next_message = self.message_queue.get()
+            if next_message.timestamp >=  min_timestamp:
+                self.message_queue.put(next_message)
+                break
+            else:
+                self.process_one_message(next_message)
+
+    def add_message(self, message):
+        """
+        Parses a Message object and appropriately adds it to Server
+        """
+        self._current_time += 1
+        message.timestamp = self._current_time
+
+        if message.source in self._clients:
+            self.timestamps[self._my_ip] = self._current_time
+            self.message_queue.put(message)
+
+        if message.source in self._servers:
+            self.timestamps[message.source] = message.timestamp
+            self.message_queue.put(message)
+
 
 
 

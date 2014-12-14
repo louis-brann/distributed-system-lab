@@ -3,7 +3,41 @@
 # Networks Lab 6 - Distributed System
 # Utility library
 
-import json, socket
+import json, socket, random
+
+client_port = 6443
+server_port = 6442
+
+clients = []
+servers = ['12.13.14.15','16.17.18.19']
+
+def get_server():
+    """
+    Input: none
+    Output: IP of random server
+    Side effects: none
+    """
+    return random.choice(servers)
+
+def send_message(message, ip, port):
+    """
+    Sends message to specified IP address and port over UDP
+    """
+    packet = message.make_json()
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    socket.sendto(packet, (ip,port))
+    udp_socket.close()
+
+def recv_message(port):
+    """
+    Receives message on specified port over UDP
+    """
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    upd_socket.bind(("", port))
+    packet, addr = udp_socket.recvfrom(1024)
+    udp_socket.close()
+
+    return json.loads(packet)
 
 class Message:
     """
@@ -17,26 +51,6 @@ class Message:
         self.payload = payload
         self.timestamp = timestamp
         self.source = source
-
-    def send(self, ip, port):
-        """
-        Sends message to specified IP address and port over UDP
-        """
-        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        message = self.make_json()
-        socket.sendto(message, (ip,port))
-        udp_socket.close()
-
-    def receive(self, port):
-        """
-        Receives message on specified port over UDP
-        """
-        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        upd_socket.bind(("", port))
-        packet, addr = udp_socket.recvfrom(1024)
-        message = json.loads(packet)
-        udp_socket.close()
-        return message
 
     def make_json(self):
         """
