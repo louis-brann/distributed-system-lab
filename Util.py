@@ -8,8 +8,8 @@ import json, socket, random
 client_port = 6443
 server_port = 6442
 
-clients = []
-servers = ['12.13.14.15','16.17.18.19']
+clients = ['134.173.42.215']
+servers = ['134.173.42.9']
 
 def get_server():
     """
