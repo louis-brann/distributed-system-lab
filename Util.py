@@ -3,7 +3,9 @@
 # Networks Lab 6 - Distributed System
 # Utility library
 
-import json, socket, random
+import json
+import socket
+import random
 
 client_port = 6443
 server_port = 6442
@@ -11,33 +13,6 @@ server_port = 6442
 clients = ['134.173.42.215']
 servers = ['134.173.42.9']
 
-def get_server():
-    """
-    Input: none
-    Output: IP of random server
-    Side effects: none
-    """
-    return random.choice(servers)
-
-def send_message(message, ip, port):
-    """
-    Sends message to specified IP address and port over UDP
-    """
-    packet = message.make_json()
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    socket.sendto(packet, (ip,port))
-    udp_socket.close()
-
-def recv_message(port):
-    """
-    Receives message on specified port over UDP
-    """
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.bind(("", port))
-    packet, addr = udp_socket.recvfrom(1024)
-    udp_socket.close()
-
-    return json.loads(packet)
 
 class Message:
     """
@@ -51,17 +26,6 @@ class Message:
         self.payload = payload
         self.timestamp = timestamp
         self.source = source
-
-    def make_json(self):
-        """
-        Package the message as a JSON string
-        """
-        json_dict = {"msg_type": self.msg_type, 
-                     "action": self.action, 
-                     "payload": self.payload,
-                     "timestamp": self.timestamp,
-                     "source": self.source}
-        return json.dumps(json_dict)
 
     # Rich comparison operators
     def __eq__(self, other):
@@ -85,5 +49,47 @@ class Message:
                 "\ntimestamp: " + str(self.timestamp) + \
                 "\nsource: " + str(self.source) + "]\n"
 
+def message_to_json(message):
+        """
+        Package the message as a JSON string
+        """
+        json_dict = {"msg_type": message.msg_type, 
+                     "action": message.action, 
+                     "payload": message.payload,
+                     "timestamp": message.timestamp,
+                     "source": message.source}
+        return json.dumps(json_dict)
 
+def json_to_message(json_serial):
+    json_dict = json.loads(json_serial)
+    return Message(json_msg["msg_type"], json_msg["action"], \
+              json_msg["payload"], json_msg["timestamp"], json_msg["source"])
+
+def get_server():
+    """
+    Input: none
+    Output: IP of random server
+    Side effects: none
+    """
+    return random.choice(servers)
+
+def send_message(message, ip, port):
+    """
+    Sends message to specified IP address and port over UDP
+    """
+    packet = message.make_json()
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.sendto(packet, (ip,port))
+    udp_socket.close()
+
+def recv_message(port):
+    """
+    Receives message on specified port over UDP
+    """
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.bind(("", port))
+    packet, addr = udp_socket.recvfrom(1024)
+    udp_socket.close()
+
+    return json_to_message(packet)
 
