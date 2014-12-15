@@ -75,6 +75,8 @@ class Server:
             print "lock"
         elif message.action == "request":
             print "lock"
+        elif message.action == "release":
+            print "lock"
         elif message.action == "destroy":
             print "lock"
     def process_barrier(self, message):
