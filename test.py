@@ -2,8 +2,21 @@ import Util
 import Server
 import Client
 
+"""
+Client basic test code:
+-----------------------
+import Client
+import Util
+my_ip = Util.clients[0]
+my_client = Client.Client(my_ip)
+my_client.int_create("Bob", 5)
+"""
+
+
 def main():
     my_ip = '16.17.18.19'
+
+
 
     msg1 = Util.Message("int","create",{"name":"Bob", "value":5, "flag":0},0,'12.13.14.15')
     msg2 = Util.Message("int","get",{"name":"Bob", "value":0, "flag":0},1,'16.17.18.19')
