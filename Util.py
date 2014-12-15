@@ -62,8 +62,8 @@ def message_to_json(message):
 
 def json_to_message(json_serial):
     json_dict = json.loads(json_serial)
-    return Message(json_msg["msg_type"], json_msg["action"], \
-              json_msg["payload"], json_msg["timestamp"], json_msg["source"])
+    return Message(json_dict["msg_type"], json_dict["action"], \
+              json_dict["payload"], json_dict["timestamp"], json_dict["source"])
 
 def get_server():
     """
@@ -77,7 +77,7 @@ def send_message(message, ip, port):
     """
     Sends message to specified IP address and port over UDP
     """
-    packet = message.make_json()
+    packet = message_to_json(message)
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.sendto(packet, (ip,port))
     udp_socket.close()
