@@ -33,7 +33,7 @@ def recv_message(port):
     Receives message on specified port over UDP
     """
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    upd_socket.bind(("", port))
+    udp_socket.bind(("", port))
     packet, addr = udp_socket.recvfrom(1024)
     udp_socket.close()
 
