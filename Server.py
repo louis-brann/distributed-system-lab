@@ -137,6 +137,15 @@ class Server:
             self.timestamps[message.source] = message.timestamp
             self.message_queue.put(message)
 
+    def client_listen(self):
+        while True:
+            message = recv_message(client_port)
+            self.add_message(message)
+            # TODO: Notify processing thread correctly
+            self.process_messages()
+
+            # TODO: Change source and send Message to every other server
+
 
 
 
