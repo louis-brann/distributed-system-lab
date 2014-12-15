@@ -140,6 +140,7 @@ class Server:
     def client_listen(self):
         while True:
             message = recv_message(client_port)
+            print "Message received, yo"
             self.add_message(message)
             # TODO: Notify processing thread correctly
             self.process_messages()

@@ -23,3 +23,14 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+"""
+Server test code
+-------------------
+from Util import *
+import Server
+import Client
+my_serv = Server.Server(clients, servers, servers[0])
+my_serv.client_listen()
+"""
