@@ -8,9 +8,9 @@ import socket
 import random
 import Queue
 
-client_listen_port = 6441
-client_port = 6443
-server_port = 6442
+c_to_s_port = 6443
+s_to_s_port = 6442
+s_to_c_port = 6441
 
 clients = ['134.173.42.215', '134.173.42.214']
 servers = ['134.173.42.9']
