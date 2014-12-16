@@ -8,6 +8,7 @@ import socket
 import random
 import Queue
 
+client_listen_port = 6441
 client_port = 6443
 server_port = 6442
 
