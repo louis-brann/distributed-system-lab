@@ -28,3 +28,24 @@ class Client:
 
         # Blocking listen for a response
         return recv_message(client_port)
+
+    
+    def lock_create(self, name):
+        return self.lock_action('create', name)
+
+    def lock_request(self, name):
+        return self.lock_action('request', name)
+
+    def lock_release(self, name):
+        return self.lock_action('release', name)
+
+    def lock_destroy(self, name):
+        return self.lock_action('destroy', name)
+
+    def lock_action(self, action, name):
+        server_ip = get_server()
+        message = Message('lock', action, {'name':name, 'value':0, 'flag':0}, 0, self.ip)
+        send_message(message, server_ip, client_port)
+
+        # Blocking listen for a response
+        return recv_message(client_port)
