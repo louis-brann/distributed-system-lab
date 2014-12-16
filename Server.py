@@ -6,6 +6,7 @@
 import Queue
 import json
 from Util import *
+from time import sleep
 
 LOCK_AVAILABLE = 1
 
@@ -197,15 +198,34 @@ class Server:
             self.timestamps[message.source] = message.timestamp
             self.message_queue.put(message)
 
-    def client_listen(self):
+    def client_listen(self, client_queue):
         while True:
             message = recv_message(client_port)
-            print "Message received, yo"
+            print "Client message received, yo"
             self.add_message(message)
             # TODO: Notify processing thread correctly
             self.process_messages()
 
             # TODO: Change source and send Message to every other server
+
+    def server_listen(self, server_queue):
+        while True:
+            message = recv_message(client_port)
+            print "Server message received, yo"
+
+
+
+    def pinger(self):
+        ping_message = Message("ping", "", {}, self._current_time, self._my_ip)
+        while True:
+            sleep(.5)
+            for server in servers:
+                # Ping that server to update timestamp
+                ping_message.timestamp = self._current_time
+                send_message(ping_message, server, server_port)
+
+
+
 
 
 
