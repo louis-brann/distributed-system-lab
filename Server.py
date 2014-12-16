@@ -145,9 +145,11 @@ class Server:
 
         # Create
         if message.action == "create":
+            print "at create action"
             if barrier_name not in self.barriers.keys():
                 self.barriers[barrier_name] = Barrier(barrier_name)
             message_success = self.barriers[barrier_name].subscribe(message.source)
+            print "message success: ", message_success
 
         # Wait
         if message.action == "wait":
@@ -192,6 +194,7 @@ class Server:
 
         elif message.msg_type == "barrier":
             new_message = self.process_barrier(message)
+            print new_message
             if not new_message: #"send no response" code
                 return
 
