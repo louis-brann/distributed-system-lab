@@ -11,6 +11,36 @@ import multiprocessing
 
 LOCK_AVAILABLE = 1
 
+def client_listen(client_queue, my_ip):
+    while True:
+        message = recv_message(client_port)
+        print "Client message received, yo"
+
+        # Send to our process by putting into client queue
+        client_queue.put(message)
+
+        # Send to all other servers after changing source 
+        message.source = my_ip
+        for server in servers:
+            if server != my_ip:
+                send_message(message, server, server_port)
+
+def server_listen(server_queue):
+    while True:
+        message = recv_message(server_port)
+        # Send to our process by putting into server queue
+        server_queue.put(message)
+
+
+def pinger(my_ip):
+    ping_message = Message("ping", "", {}, int(time.time()), my_ip)
+    while True:
+        time.sleep(.5)
+        for server in servers:
+            # Ping that server to update timestamp
+            ping_message.timestamp = int(time.time())
+            send_message(ping_message, server, server_port)
+
 class Server:
     """
     A server node in a distributed system that can create
@@ -34,6 +64,9 @@ class Server:
         self._servers = servers
         self._my_ip = my_ip
         self._lock_queue = Queue.PriorityQueue()
+
+        for server in servers:
+            self.timestamps[server] = int(time.time())
 
     def process_int(self, message):
         """
@@ -230,42 +263,14 @@ class Server:
 
         # If server, update server's timestamp
         if message.source in self._servers:
+            print "updating timestamp from ping"
             self.timestamps[message.source] = message.timestamp
         
         # Purpose of ping is updating timestamp, which is already done
         if message.msg_type != "ping":
             self.message_queue.put(message)
 
-    def client_listen(client_queue, my_ip):
-        while True:
-            message = recv_message(client_port)
-            print "Client message received, yo"
 
-            # Send to our process by putting into client queue
-            client_queue.put(message)
-
-            # Send to all other servers after changing source 
-            message.source = my_ip
-            for server in servers:
-                if server != my_ip:
-                    send_message(message, server, server_port)
-
-    def server_listen(server_queue):
-        while True:
-            message = recv_message(server_port)
-            print "Server message received, yo"
-            # Send to our process by putting into server queue
-            server_queue.put(message)
-
-
-    def pinger(my_ip):
-        ping_message = Message("ping", "", {}, int(time.time()), my_ip)
-        while True:
-            time.sleep(.5)
-            for server in servers:
-                # Ping that server to update timestamp
-                ping_message.timestamp = int(time.time())
-                send_message(ping_message, server, server_port)
 
 
     def start(self):
@@ -273,21 +278,30 @@ class Server:
                                         args=(self.client_queue, self._my_ip))
         server_listener = multiprocessing.Process(target=server_listen, \
                                         args=(self.server_queue,))
-        pinger = multiprocessing.Process(target=pinger, args=(self._my_ip,))
+        ping_proc = multiprocessing.Process(target=pinger, \
+                                        args=(self._my_ip,))
 
         client_listener.start()
         server_listener.start()
-        pinger.start()
+        ping_proc.start()
 
         while True:
             # Grab server messages
-            for i in range(self.server_queue.qsize()):
+            if not self.server_queue.empty():
+                print "server queue not empty"
                 self.add_message(self.server_queue.get())
-            # Grab client messages
-            for i in range(self.client_queue.qsize()):
+
+            # for i in range(self.server_queue.qsize()):
+            #     self.add_message(self.server_queue.get())
+            # # Grab client messages
+            if not self.client_queue.empty():
+                print "client queue not empty"
                 self.add_message(self.client_queue.get())
+            # for i in range(self.client_queue.qsize()):
+            #     self.add_message(self.client_queue.get())
 
             self.process_messages()
+
 
             
 
