@@ -153,7 +153,7 @@ class Server:
         # Wait
         if message.action == "wait":
             if barrier_name in self.barriers.keys():
-                if self.barriers[barrier_name].wait(message.source)
+                if self.barriers[barrier_name].wait(message.source):
                     if self.barriers[barrier_name].all_waiting():
                         wait_response = Message('barrier', \
                                                 'wait', \
@@ -234,7 +234,8 @@ class Server:
             self.timestamps[message.source] = message.timestamp
             self.message_queue.put(message)
 
-    def client_listen(self, client_queue):
+    #def client_listen(self, client_queue):
+    def client_listen(self):
         while True:
             message = recv_message(client_port)
             print "Client message received, yo"
