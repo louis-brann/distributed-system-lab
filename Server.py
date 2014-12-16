@@ -150,7 +150,7 @@ class Server:
             message_success = self.barriers[barrier_name].subscribe(message.source)
 
         # Wait
-        if message.action == "wait":
+        elif message.action == "wait":
             if barrier_name in self.barriers.keys():
                 if self.barriers[barrier_name].wait(message.source):
                     if self.barriers[barrier_name].all_waiting():
@@ -164,8 +164,6 @@ class Server:
                         for source in self.barriers[barrier_name].waiting:
                             send_message(wait_response, source, client_port)
                     return False
-
-
 
         # Invalid Request
         else:

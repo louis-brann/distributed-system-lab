@@ -9,7 +9,7 @@ import Client
 import Util
 my_ip = Util.clients[0]
 my_client = Client.Client(my_ip)
-my_client.int_create("Bob", 5)
+my_client.barrier_create("Bob")
 
 
 Server test code
