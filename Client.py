@@ -53,14 +53,8 @@ class Client:
     def barrier_create(self, name):
         return self.barrier_action('create', name)
 
-    def barrier_request(self, name):
-        return self.barrier_action('request', name)
-
-    def barrier_release(self, name):
-        return self.barrier_action('release', name)
-
-    def barrier_destroy(self, name):
-        return self.barrier_action('destroy', name)
+    def barrier_wait(self, name):
+        return self.barrier_action('wait', name)
 
     def barrier_action(self, action, name):
         server_ip = get_server()
