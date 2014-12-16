@@ -7,6 +7,7 @@ import Queue
 import json
 from Util import *
 
+LOCK_AVAILABLE = 1
 
 class Server:
     """
@@ -15,6 +16,10 @@ class Server:
     """
 
     def __init__(self, clients, servers, my_ip):
+        """
+        Detail: self.locks is a map from lockname -> IPaddr of owner of lock.
+                This value is 0 if nobody owns the lock.
+        """
         self.ints = {}
         self.locks = {}
         self.barriers = {}
@@ -29,7 +34,7 @@ class Server:
     def process_int(self, message):
         """
         Input: Received message that needs to be processed
-        Output: Same message modified to reflect success status and data as 
+        Output: Same message with success-status and payload modified as
                 appropriate
         Side effects: self.ints modified as appropriate
         """
@@ -70,15 +75,50 @@ class Server:
         return message
 
     def process_lock(self, messsage):
-        print "locks"
+        """
+        Input: Received message that needs to be processed
+        Output: Same message with success-status and payload modified as
+                appropriate
+        Side effects: self.locks modified as appropriate
+        """
+        message_success = False
+        lock_name = message.payload["name"]
+
+        # Create
         if message.action == "create":
-            print "lock"
+            message_success = lock_name not in self.locks.keys()
+            if message_success:
+                self.locks[lock_name] = LOCK_AVAILABLE
+
+        # Request
         elif message.action == "request":
-            print "lock"
+            message_success = lock_name in self.locks.keys() \
+                              and self.locks[lock_name] == LOCK_AVAILABLE
+            if message_success:
+                self.locks[lock_name] = message.source
+
+        # Release 
         elif message.action == "release":
-            print "lock"
+            message_success = lock_name in self.locks.keys() \
+                              and self.locks[lock_name] == message.source
+            if message_success:
+                self.locks[lock_name] = LOCK_AVAILABLE
+
+        # Destroy 
         elif message.action == "destroy":
-            print "lock"
+            message_success = lock_name in self.locks.keys() \
+                              and self.locks[lock_name] == LOCK_AVAILABLE
+            if message_success:
+                del self.locks[lock_name]
+
+        else:
+            # TODO: Handle?
+            print "Undefined operation"
+
+        # Update success status
+        message.payload["flag"] = message_success
+        return message
+            
     def process_barrier(self, message):
         print "barriers"
         if message.action == "create":
