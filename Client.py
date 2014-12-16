@@ -10,55 +10,38 @@ class Client:
         self.ip = ip
 
     def int_create(self, name, value=0):
-        return self.int_action('create', name, value)
+        return self.action('int', 'create', name, value)
 
     def int_get(self, name):
-        return self.int_action('get', name)
+        return self.action('int', 'get', name)
 
     def int_set(self, name, value):
-        return self.int_action('set', name, value)
+        return self.action('int', 'set', name, value)
 
     def int_destroy(self, name):
-        return self.int_action('destroy', name)
-
-    def int_action(self, action, name, value=0):
-        server_ip = get_server()
-        message = Message('int', action, {'name':name, 'value':value, 'flag':0}, 0, self.ip)
-        send_message(message, server_ip, client_port)
-
-        # Blocking listen for a response
-        return recv_message(client_port)
-
+        return self.action('int', 'destroy', name)
     
     def lock_create(self, name):
-        return self.lock_action('create', name)
+        return self.action('lock', 'create', name)
 
     def lock_request(self, name):
-        return self.lock_action('request', name)
+        return self.action('lock', 'request', name)
 
     def lock_release(self, name):
-        return self.lock_action('release', name)
+        return self.action('lock', 'release', name)
 
     def lock_destroy(self, name):
-        return self.lock_action('destroy', name)
-
-    def lock_action(self, action, name):
-        server_ip = get_server()
-        message = Message('lock', action, {'name':name, 'value':0, 'flag':0}, 0, self.ip)
-        send_message(message, server_ip, client_port)
-
-        # Blocking listen for a response
-        return recv_message(client_port)
+        return self.action('lock', 'destroy', name)
 
     def barrier_create(self, name):
-        return self.barrier_action('create', name)
+        return self.action('barrier', 'create', name)
 
     def barrier_wait(self, name):
-        return self.barrier_action('wait', name)
+        return self.action('barrier', 'wait', name)
 
-    def barrier_action(self, action, name):
+    def action(self, obj_type, action, name, value=0):
         server_ip = get_server()
-        message = Message('barrier', action, {'name':name, 'value':0, 'flag':0}, 0, self.ip)
+        message = Message(obj_type, action, {'name':name, 'value':value, 'flag':0}, 0, self.ip)
         send_message(message, server_ip, client_port)
 
         # Blocking listen for a response
