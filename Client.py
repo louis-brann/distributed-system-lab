@@ -49,3 +49,23 @@ class Client:
 
         # Blocking listen for a response
         return recv_message(client_port)
+
+    def barrier_create(self, name):
+        return self.barrier_action('create', name)
+
+    def barrier_request(self, name):
+        return self.barrier_action('request', name)
+
+    def barrier_release(self, name):
+        return self.barrier_action('release', name)
+
+    def barrier_destroy(self, name):
+        return self.barrier_action('destroy', name)
+
+    def barrier_action(self, action, name):
+        server_ip = get_server()
+        message = Message('barrier', action, {'name':name, 'value':0, 'flag':0}, 0, self.ip)
+        send_message(message, server_ip, client_port)
+
+        # Blocking listen for a response
+        return recv_message(client_port)
