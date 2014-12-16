@@ -6,6 +6,7 @@
 import json
 import socket
 import random
+import Queue
 
 client_port = 6443
 server_port = 6442
@@ -92,4 +93,48 @@ def recv_message(port):
     udp_socket.close()
 
     return json_to_message(packet)
+
+
+class Lock:
+
+    def __init__(self, name):
+        self.name = name
+        self.owner_ip = ""
+        self.queue = Queue.Queue()
+
+    def request(self, requester_ip):
+        """
+        Input: IP of requester
+        Output: Bool for success or failure
+        """
+        if self.owner_ip == "" or self.owner_ip == requester_ip:
+            self.owner_ip = requester_ip
+            return True
+
+        else:
+            self.queue.put(requester_ip)
+            return False
+            
+
+    def release(self, releaser_ip):
+        """
+        Input: IP of releaser
+        Output: Bool for success or failure
+        """
+        if self.owner_ip == releaser_ip:
+            self.owner_ip = ""
+            if not self.queue.empty():
+                self.request(self.queue.pop())
+            return True
+
+        else:
+            return False
+
+
+
+
+
+
+
+
 
