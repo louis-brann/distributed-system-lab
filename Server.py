@@ -13,7 +13,7 @@ LOCK_AVAILABLE = 1
 
 def client_listen(client_queue, my_ip):
     while True:
-        message = recv_message(client_port)
+        message = recv_message(c_to_s_port)
         print "Client message received, yo"
 
         # Send to our process by putting into client queue
@@ -23,11 +23,11 @@ def client_listen(client_queue, my_ip):
         message.source = my_ip
         for server in servers:
             if server != my_ip:
-                send_message(message, server, server_port)
+                send_message(message, server, s_to_s_port)
 
 def server_listen(server_queue):
     while True:
-        message = recv_message(server_port)
+        message = recv_message(s_to_s_port)
         # Send to our process by putting into server queue
         server_queue.put(message)
 
@@ -39,7 +39,7 @@ def pinger(my_ip):
         for server in servers:
             # Ping that server to update timestamp
             ping_message.timestamp = int(time.time())
-            send_message(ping_message, server, server_port)
+            send_message(ping_message, server, s_to_s_port)
 
 class Server:
     """
@@ -150,7 +150,7 @@ class Server:
                                                     'flag':1}, \
                                                     int(time.time()), \
                                                     self._my_ip)
-                        send_message(request_response, this_lock.owner_ip, client_port)
+                        send_message(request_response, this_lock.owner_ip, s_to_c_port)
 
 
         # Destroy 
@@ -197,7 +197,7 @@ class Server:
                                                 int(time.time()), \
                                                 self._my_ip)
                         for source in self.barriers[barrier_name].waiting:
-                            send_message(wait_response, source, client_port)
+                            send_message(wait_response, source, s_to_c_port)
                     return False
 
         # Invalid Request
@@ -235,7 +235,7 @@ class Server:
         if new_message.source in self._clients:
             dest = new_message.source
             new_message.source = self._my_ip
-            send_message(new_message, dest, client_port)
+            send_message(new_message, dest, s_to_c_port)
 
     def process_messages(self):
         """
