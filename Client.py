@@ -45,4 +45,4 @@ class Client:
         send_message(message, server_ip, client_port)
 
         # Blocking listen for a response
-        return recv_message(client_port)
+        return recv_message(client_listen_port)
