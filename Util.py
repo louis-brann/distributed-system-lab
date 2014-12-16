@@ -130,7 +130,27 @@ class Lock:
         else:
             return False
 
+class Barrier:
 
+    def __init__(self, name):
+        self.name = name
+        self.subscribed = []
+        self.waiting = []
+
+    def subscribe(self, subscriber_ip):
+        if subscriber_ip not in self.subscribed:
+            self.subscribed.append(subscriber_ip)
+        return True
+
+    def wait(self, waiter_ip):
+        if waiter_ip in self.subscribed:
+            self.waiting.append(waiter_ip)
+            return True
+        else: 
+            return False
+
+    def all_waiting(self):
+        return self.subscribed == self.waiting
 
 
 

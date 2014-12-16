@@ -134,11 +134,47 @@ class Server:
         return message
             
     def process_barrier(self, message):
-        print "barriers"
+        """
+        Input: Received message that needs to be processed
+        Output: Same message with success-status and payload modified as
+                appropriate
+        Side effects: self.barriers modified as appropriate
+        """
+        message_success = False
+        barrier_name = message.payload["name"]
+
+        # Create
         if message.action == "create":
-            print "barrier"
+            if barrier_name not in self.barriers.keys():
+                self.barriers[barrier_name] = Barrier(barrier_name)
+            self.barriers[barrier_name].subscribe(message.source)
+            return False
+
+        # Wait
         if message.action == "wait":
-            print "barrier"
+            if barrier_name in self.barriers.keys():
+                if self.barriers[barrier_name].wait(message.source)
+                    if self.barriers[barrier_name].all_waiting():
+                        wait_response = Message('barrier', \
+                                                'wait', \
+                                                {'name':barrier_name, \
+                                                 'value':0, \
+                                                 'flag':1}, \
+                                                self._current_time, \
+                                                self._my_ip)
+                        for source in self.barriers[barrier_name].waiting:
+                            send_message(wait_response, source, client_port)
+                    return False
+
+
+
+        # Invalid Request
+        else:
+            message_success = False
+
+        # Update success status
+        message.payload["flag"] = message_success
+        return message
 
     def process_one_message(self, message):
         """
