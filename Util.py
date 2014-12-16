@@ -11,7 +11,7 @@ import Queue
 client_port = 6443
 server_port = 6442
 
-clients = ['134.173.42.215']
+clients = ['134.173.42.215', '134.173.42.214']
 servers = ['134.173.42.9']
 
 
