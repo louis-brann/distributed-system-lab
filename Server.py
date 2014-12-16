@@ -6,7 +6,8 @@
 import Queue
 import json
 from Util import *
-from time import sleep
+import time
+import multiprocessing
 
 LOCK_AVAILABLE = 1
 
@@ -26,11 +27,12 @@ class Server:
         self.barriers = {}
         self.timestamps = {}
         self.message_queue = Queue.PriorityQueue()
+        self.client_queue = multiprocessing.Queue()
+        self.server_queue = multiprocessing.Queue()
 
         self._clients = clients
         self._servers = servers
         self._my_ip = my_ip
-        self._current_time = 0
         self._lock_queue = Queue.PriorityQueue()
 
     def process_int(self, message):
@@ -113,7 +115,7 @@ class Server:
                                                    {'name':lock_name, \
                                                     'value':0, \
                                                     'flag':1}, \
-                                                    self._current_time, \
+                                                    int(time.time()), \
                                                     self._my_ip)
                         send_message(request_response, this_lock.owner_ip, client_port)
 
@@ -159,7 +161,7 @@ class Server:
                                                 {'name':barrier_name, \
                                                  'value':0, \
                                                  'flag':1}, \
-                                                self._current_time, \
+                                                int(time.time()), \
                                                 self._my_ip)
                         for source in self.barriers[barrier_name].waiting:
                             send_message(wait_response, source, client_port)
@@ -222,43 +224,72 @@ class Server:
         """
         Parses a Message object and appropriately adds it to Server
         """
-        self._current_time += 1
-        message.timestamp = self._current_time
-
+        # If client, update our own timestamp
         if message.source in self._clients:
-            self.timestamps[self._my_ip] = self._current_time
-            self.message_queue.put(message)
+            self.timestamps[self._my_ip] = int(time.time())
 
+        # If server, update server's timestamp
         if message.source in self._servers:
             self.timestamps[message.source] = message.timestamp
+        
+        # Purpose of ping is updating timestamp, which is already done
+        if message.msg_type != "ping":
             self.message_queue.put(message)
 
-    #def client_listen(self, client_queue):
-    def client_listen(self):
+    def client_listen(client_queue, my_ip):
         while True:
             message = recv_message(client_port)
             print "Client message received, yo"
-            self.add_message(message)
-            # TODO: Notify processing thread correctly
-            self.process_messages()
 
-            # TODO: Change source and send Message to every other server
+            # Send to our process by putting into client queue
+            client_queue.put(message)
 
-    def server_listen(self, server_queue):
+            # Send to all other servers after changing source 
+            message.source = my_ip
+            for server in servers:
+                if server != my_ip:
+                    send_message(message, server, server_port)
+
+    def server_listen(server_queue):
         while True:
-            message = recv_message(client_port)
+            message = recv_message(server_port)
             print "Server message received, yo"
+            # Send to our process by putting into server queue
+            server_queue.put(message)
 
 
-
-    def pinger(self):
-        ping_message = Message("ping", "", {}, self._current_time, self._my_ip)
+    def pinger(my_ip):
+        ping_message = Message("ping", "", {}, int(time.time()), my_ip)
         while True:
-            sleep(.5)
+            time.sleep(.5)
             for server in servers:
                 # Ping that server to update timestamp
-                ping_message.timestamp = self._current_time
+                ping_message.timestamp = int(time.time())
                 send_message(ping_message, server, server_port)
+
+
+    def start(self):
+        client_listener = multiprocessing.Process(target=client_listen, \
+                                        args=(self.client_queue, self._my_ip))
+        server_listener = multiprocessing.Process(target=server_listen, \
+                                        args=(self.server_queue,))
+        pinger = multiprocessing.Process(target=pinger, args=(self._my_ip,))
+
+        client_listener.start()
+        server_listener.start()
+        pinger.start()
+
+        while True:
+            # Grab server messages
+            for i in range(self.server_queue.qsize()):
+                self.add_message(self.server_queue.get())
+            # Grab client messages
+            for i in range(self.client_queue.qsize()):
+                self.add_message(self.client_queue.get())
+
+            self.process_messages()
+
+            
 
 
 
