@@ -41,7 +41,7 @@ class Client:
 
     def action(self, obj_type, action, name, value=0):
         server_ip = get_server()
-        message = Message(obj_type, action, {'name':name, 'value':value, 'flag':False}, 0, self.ip)
+        message = Message(obj_type, action, {'name':name, 'value':value, 'flag':False}, 0, self.ip, self.ip)
         send_message(message, server_ip, c_to_s_port)
 
         # Blocking listen for a response
