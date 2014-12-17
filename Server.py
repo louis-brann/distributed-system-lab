@@ -11,19 +11,23 @@ import multiprocessing
 
 LOCK_AVAILABLE = 1
 
-def client_listen(client_queue, my_ip):
+def client_listen(client_queue, my_ip, servers):
     while True:
         message = recv_message(c_to_s_port)
         print "Client message received, yo"
 
         # Send to our process by putting into client queue
+        message.timestamp = int(time.time())
+        print "message before queue:", message
         client_queue.put(message)
 
+
         # Send to all other servers after changing source 
-        message.source = my_ip
+        server_message = Message(message.msg_type, message.action, \
+                                 message.payload, message.timestamp, my_ip)
         for server in servers:
             if server != my_ip:
-                send_message(message, server, s_to_s_port)
+                send_message(server_message, server, s_to_s_port)
 
 def server_listen(server_queue):
     while True:
@@ -32,7 +36,7 @@ def server_listen(server_queue):
         server_queue.put(message)
 
 
-def pinger(my_ip):
+def pinger(my_ip, servers):
     ping_message = Message("ping", "", {}, int(time.time()), my_ip)
     while True:
         time.sleep(.5)
@@ -259,15 +263,16 @@ class Server:
         """
         # If client, update our own timestamp
         if message.source in self._clients:
-            self.timestamps[self._my_ip] = int(time.time())
+            print "updating timestamp from client message"
+            self.timestamps[self._my_ip] = message.timestamp
 
         # If server, update server's timestamp
         if message.source in self._servers:
-            print "updating timestamp from ping"
             self.timestamps[message.source] = message.timestamp
         
         # Purpose of ping is updating timestamp, which is already done
         if message.msg_type != "ping":
+            print "adding message to message_queue"
             self.message_queue.put(message)
 
 
@@ -275,11 +280,11 @@ class Server:
 
     def start(self):
         client_listener = multiprocessing.Process(target=client_listen, \
-                                        args=(self.client_queue, self._my_ip))
+                        args=(self.client_queue, self._my_ip, self._servers))
         server_listener = multiprocessing.Process(target=server_listen, \
-                                        args=(self.server_queue,))
+                        args=(self.server_queue,))
         ping_proc = multiprocessing.Process(target=pinger, \
-                                        args=(self._my_ip,))
+                        args=(self._my_ip, self._servers))
 
         client_listener.start()
         server_listener.start()
@@ -288,26 +293,14 @@ class Server:
         while True:
             # Grab server messages
             if not self.server_queue.empty():
-                print "server queue not empty"
                 self.add_message(self.server_queue.get())
 
-            # for i in range(self.server_queue.qsize()):
-            #     self.add_message(self.server_queue.get())
-            # # Grab client messages
+            # Grab client messages
             if not self.client_queue.empty():
-                print "client queue not empty"
-                self.add_message(self.client_queue.get())
-            # for i in range(self.client_queue.qsize()):
-            #     self.add_message(self.client_queue.get())
+                message = self.client_queue.get()
+                self.add_message(message)
 
             self.process_messages()
-
-
-            
-
-
-
-
 
 
 

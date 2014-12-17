@@ -125,7 +125,7 @@ class Lock:
         if self.owner_ip == releaser_ip:
             self.owner_ip = ""
             if not self.queue.empty():
-                self.request(self.queue.pop())
+                self.request(self.queue.get())
             return True
 
         else:
