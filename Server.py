@@ -22,12 +22,10 @@ def client_listen(client_queue, my_ip, servers):
         client_queue.put(message)
 
 
-        # Send to all other servers after changing source 
-        server_message = Message(message.msg_type, message.action, \
-                                 message.payload, message.timestamp, my_ip)
+        # Send to all other servers
         for server in servers:
             if server != my_ip:
-                send_message(server_message, server, s_to_s_port)
+                send_message(message, server, s_to_s_port)
 
 def server_listen(server_queue):
     while True:
@@ -37,7 +35,7 @@ def server_listen(server_queue):
 
 
 def pinger(my_ip, servers):
-    ping_message = Message("ping", "", {}, int(time.time()), my_ip)
+    ping_message = Message("ping", "", {}, int(time.time()), my_ip, my_ip)
     while True:
         time.sleep(.5)
         for server in servers:
@@ -134,18 +132,18 @@ class Server:
         # Request
         elif message.action == "request":
             if lock_name in self.locks.keys():
-                message_success = self.locks[lock_name].request(message.source)
+                message_success = self.locks[lock_name].request(message.orig_src)
                 if not message_success:
                     return message_success
 
         # Release 
         elif message.action == "release":
             if lock_name in self.locks.keys():
-                message_success = self.locks[lock_name].release(message.source)
+                message_success = self.locks[lock_name].release(message.orig_src)
                 this_lock = self.locks[lock_name]
                 if message_success:
-                    # If there's a new owner
-                    if this_lock.owner_ip != "":
+                    # If there's a new owner, and we're the right server to respond
+                    if this_lock.owner_ip != "" and message.orig_src == message.last_src:
                         # Send new owner success message
                         request_response = Message('lock', \
                                                    'request', \
@@ -153,6 +151,7 @@ class Server:
                                                     'value':0, \
                                                     'flag':True}, \
                                                     int(time.time()), \
+                                                    self._my_ip,
                                                     self._my_ip)
                         send_message(request_response, this_lock.owner_ip, s_to_c_port)
 
@@ -186,19 +185,21 @@ class Server:
         if message.action == "create":
             if barrier_name not in self.barriers.keys():
                 self.barriers[barrier_name] = Barrier(barrier_name)
-            message_success = self.barriers[barrier_name].subscribe(message.source)
+            message_success = self.barriers[barrier_name].subscribe(message.orig_src)
 
         # Wait
         elif message.action == "wait":
             if barrier_name in self.barriers.keys():
-                if self.barriers[barrier_name].wait(message.source):
-                    if self.barriers[barrier_name].all_waiting():
+                if self.barriers[barrier_name].wait(message.orig_src):
+                    if self.barriers[barrier_name].all_waiting() and \
+                                        message.orig_src == message.last_src:
                         wait_response = Message('barrier', \
                                                 'wait', \
                                                 {'name':barrier_name, \
                                                  'value':0, \
                                                  'flag':True}, \
                                                 int(time.time()), \
+                                                self._my_ip,
                                                 self._my_ip)
                         for source in self.barriers[barrier_name].waiting:
                             send_message(wait_response, source, s_to_c_port)
@@ -236,9 +237,9 @@ class Server:
             new_message = message
             message_success = False
 
-        if new_message.source in self._clients:
-            dest = new_message.source
-            new_message.source = self._my_ip
+        if new_message.orig_src in self._clients:
+            dest = new_message.orig_src
+            new_message.orig_src = self._my_ip
             send_message(new_message, dest, s_to_c_port)
 
     def process_messages(self):
@@ -262,13 +263,13 @@ class Server:
         Parses a Message object and appropriately adds it to Server
         """
         # If client, update our own timestamp
-        if message.source in self._clients:
+        if message.orig_src in self._clients:
             print "updating timestamp from client message"
             self.timestamps[self._my_ip] = message.timestamp
 
         # If server, update server's timestamp
-        if message.source in self._servers:
-            self.timestamps[message.source] = message.timestamp
+        if message.orig_src in self._servers:
+            self.timestamps[message.orig_src] = message.timestamp
         
         # Purpose of ping is updating timestamp, which is already done
         if message.msg_type != "ping":

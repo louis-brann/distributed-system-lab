@@ -13,7 +13,7 @@ s_to_s_port = 6442
 s_to_c_port = 6441
 
 clients = ['134.173.42.215', '134.173.42.214']
-servers = ['134.173.42.9']
+servers = ['134.173.42.9', '134.173.42.4']
 
 
 class Message:
@@ -22,12 +22,13 @@ class Message:
     between Servers
     """
 
-    def __init__(self, msg_type="", action="", payload={}, timestamp=0, source=""):
+    def __init__(self, msg_type="", action="", payload={}, timestamp=0, orig_src = "", last_src=""):
         self.msg_type = msg_type
         self.action = action
         self.payload = payload
         self.timestamp = timestamp
-        self.source = source
+        self.orig_src = orig_src
+        self.last_src = last_src
 
     # Rich comparison operators
     def __eq__(self, other):
@@ -49,7 +50,8 @@ class Message:
                 "\naction: " + str(self.action) + \
                 "\npayload: " + str(self.payload) + \
                 "\ntimestamp: " + str(self.timestamp) + \
-                "\nsource: " + str(self.source) + "]\n"
+                "\norig_src: " + str(self.orig_src) + \
+                "\nlast_src: " + str(self.last_src) + "]\n"
 
 def message_to_json(message):
         """
@@ -59,13 +61,15 @@ def message_to_json(message):
                      "action": message.action, 
                      "payload": message.payload,
                      "timestamp": message.timestamp,
-                     "source": message.source}
+                     "orig_src": message.orig_src,
+                     "last_src": message.last_src}
         return json.dumps(json_dict)
 
 def json_to_message(json_serial):
     json_dict = json.loads(json_serial)
     return Message(json_dict["msg_type"], json_dict["action"], \
-              json_dict["payload"], json_dict["timestamp"], json_dict["source"])
+              json_dict["payload"], json_dict["timestamp"], \
+              json_dict["orig_src"], json_dict["last_src"])
 
 def get_server():
     """
