@@ -151,7 +151,7 @@ class Barrier:
             return False
 
     def all_waiting(self):
-        return self.subscribed == self.waiting
+        return set(self.subscribed) == set(self.waiting)
 
 
 
