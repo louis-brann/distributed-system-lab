@@ -9,7 +9,7 @@ from Util import *
 import time
 import multiprocessing
 
-LOCK_AVAILABLE = 1
+LOCK_AVAILABLE = True
 
 def client_listen(client_queue, my_ip, servers):
     while True:
@@ -151,7 +151,7 @@ class Server:
                                                    'request', \
                                                    {'name':lock_name, \
                                                     'value':0, \
-                                                    'flag':1}, \
+                                                    'flag':True}, \
                                                     int(time.time()), \
                                                     self._my_ip)
                         send_message(request_response, this_lock.owner_ip, s_to_c_port)
@@ -197,7 +197,7 @@ class Server:
                                                 'wait', \
                                                 {'name':barrier_name, \
                                                  'value':0, \
-                                                 'flag':1}, \
+                                                 'flag':True}, \
                                                 int(time.time()), \
                                                 self._my_ip)
                         for source in self.barriers[barrier_name].waiting:
