@@ -151,7 +151,7 @@ class Server:
                                                     'value':0, \
                                                     'flag':True}, \
                                                     int(time.time()), \
-                                                    self._my_ip,
+                                                    message.orig_src,
                                                     self._my_ip)
                         send_message(request_response, this_lock.owner_ip, s_to_c_port)
 
@@ -199,10 +199,12 @@ class Server:
                                                  'value':0, \
                                                  'flag':True}, \
                                                 int(time.time()), \
-                                                self._my_ip,
+                                                message.orig_src,
                                                 self._my_ip)
                         for source in self.barriers[barrier_name].waiting:
                             send_message(wait_response, source, s_to_c_port)
+                    # Now, destroy this barrier
+                    del self.barriers[barrier_name]
                     return False
 
         # Invalid Request
