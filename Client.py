@@ -6,6 +6,14 @@
 from Util import *
 
 class Client:
+    """
+    This client class as given can operate on three datatypes, Ints, Locks, or 
+    Barriers. The client leverages the Util library to send the desired
+    operations to a Server, which maintains the state of these operations.
+    Each client can be identified by their IP, which means that this class can 
+    only support one client per machine. 
+    """
+
     def __init__(self, ip):
         self.ip = ip
 
