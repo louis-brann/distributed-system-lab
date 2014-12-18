@@ -18,6 +18,11 @@ class Client:
         self.ip = ip
 
     def int_create(self, name, value=0):
+        """
+        Input: name of int to create as a string, optional initial value
+        Output: Message type indicating processing of request
+        Details: 
+        """
         return self.action('int', 'create', name, value)
 
     def int_get(self, name):
@@ -33,6 +38,10 @@ class Client:
         return self.action('lock', 'create', name)
 
     def lock_request(self, name):
+        """
+        Details: If another client owns the lock, hangs until the lock is 
+                 available
+        """
         return self.action('lock', 'request', name)
 
     def lock_release(self, name):
@@ -45,6 +54,10 @@ class Client:
         return self.action('barrier', 'create', name)
 
     def barrier_wait(self, name):
+        """
+        Details: If this client is not the last to wait on the barrier, it 
+                 hangs until all clients subscribed to the barrier are waiting
+        """
         return self.action('barrier', 'wait', name)
 
     def action(self, obj_type, action, name, value=0):
