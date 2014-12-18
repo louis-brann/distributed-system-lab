@@ -12,6 +12,13 @@ import multiprocessing
 LOCK_AVAILABLE = True
 
 def client_listen(client_queue, my_ip, servers):
+    """
+    Input: A multiprocessing Queue, this processes IP as a string, list of all
+           server IPs as strings
+    Output: None
+    Side Effects: receives messages, puts them into multiprocessing Queue, 
+                  forwards message on to servers in provided server list
+    """
     while True:
         message = recv_message(c_to_s_port)
         print "Client message received"
@@ -20,20 +27,30 @@ def client_listen(client_queue, my_ip, servers):
         message.timestamp = int(time.time())
         client_queue.put(message)
 
-
         # Send to all other servers
         for server in servers:
             if server != my_ip:
                 send_message(message, server, s_to_s_port)
 
 def server_listen(server_queue):
+    """
+    Input: A multiprocessing Queue
+    Output: None
+    Side Effects: receives messages, puts them into multiprocessing Queue
+    """
     while True:
         message = recv_message(s_to_s_port)
+
         # Send to our process by putting into server queue
         server_queue.put(message)
 
 
 def pinger(my_ip, servers):
+    """
+    Input: IP address as a string, list of IPs as strings
+    Output: None
+    Side Effects: Send a "ping" message object to all IPs in server list
+    """
     ping_message = Message("ping", "", {}, int(time.time()), my_ip, my_ip)
     while True:
         time.sleep(.5)
@@ -45,7 +62,8 @@ def pinger(my_ip, servers):
 class Server:
     """
     A server node in a distributed system that can create
-    and manage ints, locks, and barriers
+    and manage ints, locks, and barriers. Guarantees total ordering of
+    distributed messages between itself and other identical server objects.
     """
 
     def __init__(self, clients, servers, my_ip):
@@ -275,10 +293,17 @@ class Server:
         if message.msg_type != "ping":
             self.message_queue.put(message)
 
-
-
-
     def start(self):
+        """
+        Input: None
+        Output: None
+        Details: Creates 3 separate processes. 2 for listening for messages on
+                 different ports, and one for pinging other servers. Receives 
+                 messages from both listening processes from multiprocessing 
+                 Queues, adds them to an internal PriorityQueue, and then
+                 processes them. Use of PriorityQueue ensures total ordering
+                 between several servers of this same type.
+        """
         client_listener = multiprocessing.Process(target=client_listen, \
                         args=(self.client_queue, self._my_ip, self._servers))
         server_listener = multiprocessing.Process(target=server_listen, \
