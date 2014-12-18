@@ -68,8 +68,9 @@ class Server:
 
     def __init__(self, clients, servers, my_ip):
         """
-        Detail: self.locks is a map from lockname -> IPaddr of owner of lock.
-                This value is 0 if nobody owns the lock.
+        Input: List of clients and servers as IP strings, and IP for this server
+        Output: Server object
+        Detail: Expects to be used with start() function
         """
         self.ints = {}
         self.locks = {}
