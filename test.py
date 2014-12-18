@@ -30,6 +30,12 @@ import Server
 import Client
 my_serv = Server.Server(clients, servers, servers[0])
 my_serv.start()
+
+from Util import *
+import Server
+import Client
+my_serv = Server.Server(clients, servers, servers[1])
+my_serv.start()
 """
 
 
