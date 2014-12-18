@@ -187,10 +187,13 @@ class Server:
                 self.barriers[barrier_name] = Barrier(barrier_name)
             message_success = self.barriers[barrier_name].subscribe(message.orig_src)
 
+            print "subscribed: ", self.barriers[barrier_name].subscribed
+
         # Wait
         elif message.action == "wait":
             if barrier_name in self.barriers.keys():
                 if self.barriers[barrier_name].wait(message.orig_src):
+                    print "waiting: " , self.barriers[barrier_name].waiting
                     if self.barriers[barrier_name].all_waiting() and \
                                         message.orig_src == message.last_src:
                         wait_response = Message('barrier', \
