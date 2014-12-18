@@ -15,6 +15,14 @@ s_to_c_port = 6441
 clients = ['134.173.42.215', '134.173.42.214']
 servers = ['134.173.42.9', '134.173.42.4']
 
+def get_server():
+    """
+    Input: none
+    Output: IP of random server
+    Side effects: none
+    """
+    return random.choice(servers)
+
 
 class Message:
     """
@@ -79,14 +87,6 @@ def json_to_message(json_serial):
               json_dict["payload"], json_dict["timestamp"], \
               json_dict["orig_src"], json_dict["last_src"])
 
-def get_server():
-    """
-    Input: none
-    Output: IP of random server
-    Side effects: none
-    """
-    return random.choice(servers)
-
 def send_message(message, ip, port):
     """
     Input: A sendable object, and ip/port information
@@ -148,6 +148,7 @@ class Lock:
 
         else:
             return False
+
 
 class Barrier:
     """
