@@ -194,20 +194,20 @@ class Server:
             if barrier_name in self.barriers.keys():
                 if self.barriers[barrier_name].wait(message.orig_src):
                     print "waiting: " , self.barriers[barrier_name].waiting
-                    if self.barriers[barrier_name].all_waiting() and \
-                                        message.orig_src == message.last_src:
-                        wait_response = Message('barrier', \
-                                                'wait', \
-                                                {'name':barrier_name, \
-                                                 'value':0, \
-                                                 'flag':True}, \
-                                                int(time.time()), \
-                                                message.orig_src,
-                                                self._my_ip)
-                        for source in self.barriers[barrier_name].waiting:
-                            send_message(wait_response, source, s_to_c_port)
-                    # Now, destroy this barrier
-                    del self.barriers[barrier_name]
+                    if self.barriers[barrier_name].all_waiting():
+                        if message.orig_src == message.last_src:
+                            wait_response = Message('barrier', \
+                                                    'wait', \
+                                                    {'name':barrier_name, \
+                                                     'value':0, \
+                                                     'flag':True}, \
+                                                    int(time.time()), \
+                                                    message.orig_src,
+                                                    self._my_ip)
+                            for source in self.barriers[barrier_name].waiting:
+                                send_message(wait_response, source, s_to_c_port)
+                        # Now, destroy this barrier
+                        del self.barriers[barrier_name]
                     return False
 
         # Invalid Request
