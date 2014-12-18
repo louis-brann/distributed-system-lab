@@ -151,8 +151,8 @@ class Barrier:
 
         print "WAIT CALLED"
         print "--------------"
-        print "subscribed: ", self.barriers[barrier_name].subscribed
-        print "waiting: " , self.barriers[barrier_name].waiting
+        print "subscribed: ", self.subscribed
+        print "waiting: " , self.waiting
         print "--------------"
         if waiter_ip in self.subscribed:
             self.waiting.append(waiter_ip)
