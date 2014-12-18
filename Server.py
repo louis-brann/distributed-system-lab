@@ -14,11 +14,10 @@ LOCK_AVAILABLE = True
 def client_listen(client_queue, my_ip, servers):
     while True:
         message = recv_message(c_to_s_port)
-        print "Client message received, yo"
+        print "Client message received"
 
         # Send to our process by putting into client queue
         message.timestamp = int(time.time())
-        print "message before queue:", message
         client_queue.put(message)
 
 
@@ -191,20 +190,20 @@ class Server:
         elif message.action == "wait":
             if barrier_name in self.barriers.keys():
                 if self.barriers[barrier_name].wait(message.orig_src):
-                    if self.barriers[barrier_name].all_waiting() and \
-                                        message.orig_src == message.last_src:
-                        wait_response = Message('barrier', \
-                                                'wait', \
-                                                {'name':barrier_name, \
-                                                 'value':0, \
-                                                 'flag':True}, \
-                                                int(time.time()), \
-                                                message.orig_src,
-                                                self._my_ip)
-                        for source in self.barriers[barrier_name].waiting:
-                            send_message(wait_response, source, s_to_c_port)
-                    # Now, destroy this barrier
-                    del self.barriers[barrier_name]
+                    if self.barriers[barrier_name].all_waiting():
+                        if message.orig_src == message.last_src:
+                            wait_response = Message('barrier', \
+                                                    'wait', \
+                                                    {'name':barrier_name, \
+                                                     'value':0, \
+                                                     'flag':True}, \
+                                                    int(time.time()), \
+                                                    message.orig_src,
+                                                    self._my_ip)
+                            for source in self.barriers[barrier_name].waiting:
+                                send_message(wait_response, source, s_to_c_port)
+                        # Now, destroy this barrier
+                        del self.barriers[barrier_name]
                     return False
 
         # Invalid Request
@@ -266,7 +265,6 @@ class Server:
         """
         # If client, update our own timestamp
         if message.orig_src in self._clients:
-            print "updating timestamp from client message"
             self.timestamps[self._my_ip] = message.timestamp
 
         # If server, update server's timestamp
@@ -275,7 +273,6 @@ class Server:
         
         # Purpose of ping is updating timestamp, which is already done
         if message.msg_type != "ping":
-            print "adding message to message_queue"
             self.message_queue.put(message)
 
 
