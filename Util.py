@@ -148,12 +148,6 @@ class Barrier:
         return True
 
     def wait(self, waiter_ip):
-
-        print "WAIT CALLED"
-        print "--------------"
-        print "subscribed: ", self.subscribed
-        print "waiting: " , self.waiting
-        print "--------------"
         if waiter_ip in self.subscribed:
             self.waiting.append(waiter_ip)
             return True
