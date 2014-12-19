@@ -16,7 +16,7 @@ def client_listen(client_queue, my_ip, servers):
     Input: A multiprocessing Queue, this processes IP as a string, list of all
            server IPs as strings
     Output: None
-    Side Effects: receives messages, puts them into multiprocessing Queue, 
+    Details: receives messages, puts them into multiprocessing Queue, 
                   forwards message on to servers in provided server list
     """
     while True:
@@ -36,7 +36,7 @@ def server_listen(server_queue):
     """
     Input: A multiprocessing Queue
     Output: None
-    Side Effects: receives messages, puts them into multiprocessing Queue
+    Details: receives messages, puts them into multiprocessing Queue
     """
     while True:
         message = recv_message(s_to_s_port)
@@ -49,7 +49,7 @@ def pinger(my_ip, servers):
     """
     Input: IP address as a string, list of IPs as strings
     Output: None
-    Side Effects: Send a "ping" message object to all IPs in server list
+    Details: Send a "ping" message object to all IPs in server list
     """
     ping_message = Message("ping", "", {}, int(time.time()), my_ip, my_ip)
     while True:
@@ -93,7 +93,7 @@ class Server:
         Input: Received message that needs to be processed
         Output: Same message with success-status and payload modified as
                 appropriate
-        Side effects: self.ints modified as appropriate
+        Details: self.ints modified as appropriate
         """
         message_success = False
         int_name = message.payload["name"]
@@ -136,7 +136,7 @@ class Server:
         Input: Received message that needs to be processed
         Output: Same message with success-status and payload modified as
                 appropriate
-        Side effects: self.locks modified as appropriate
+        Details: self.locks modified as appropriate
         """
         message_success = False
         lock_name = message.payload["name"]
@@ -194,7 +194,7 @@ class Server:
         Input: Received message that needs to be processed
         Output: Same message with success-status and payload modified as
                 appropriate
-        Side effects: self.barriers modified as appropriate
+        Details: self.barriers modified as appropriate
         """
         message_success = False
         barrier_name = message.payload["name"]
@@ -237,7 +237,7 @@ class Server:
         """
         Input: Message to process
         Output: none
-        Side effects: Changes server data based on what Message specified
+        Details: Changes server data based on what Message specified
                       and sends message back if needed
         """
         if message.msg_type == "int":
@@ -264,7 +264,9 @@ class Server:
 
     def process_messages(self):
         """
-        Process all messages in the message_queue before the earliest
+        Input: None
+        Output: None
+        Details: Process all messages in the message_queue before the earliest
         entry in timestamps
         """
         min_timestamp = min(self.timestamps.values())
@@ -280,7 +282,9 @@ class Server:
 
     def add_message(self, message):
         """
-        Parses a Message object and appropriately adds it to Server
+        Input: A Message object
+        Output: None
+        Details: Parses a Message object and appropriately adds it to Server
         """
         # If client, update our own timestamp
         if message.orig_src in self._clients:

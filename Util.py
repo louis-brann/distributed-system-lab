@@ -8,6 +8,7 @@ import socket
 import random
 import Queue
 
+# Server configuration and retrieval
 c_to_s_port = 6443
 s_to_s_port = 6442
 s_to_c_port = 6441
@@ -19,11 +20,10 @@ def get_server():
     """
     Input: none
     Output: IP of random server
-    Side effects: none
     """
     return random.choice(servers)
 
-
+# Message class
 class Message:
     """
     Wrapper for JSON message passing between Clients and Servers, and 
@@ -91,7 +91,7 @@ def send_message(message, ip, port):
     """
     Input: A sendable object, and ip/port information
     Output: None
-    Side Effects: Sends message to specified IP address and port over UDP
+    Details: Sends message to specified IP address and port over UDP
     """
     packet = message_to_json(message)
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -102,6 +102,7 @@ def recv_message(port):
     """
     Input: A port to listen on
     Output: A message object received on that port over UDP
+    Details: Receiving has no timeout. This will hang until a message is received
     """
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.bind(("", port))
@@ -111,6 +112,7 @@ def recv_message(port):
     return json_to_message(packet)
 
 
+# Lock object
 class Lock:
     """
     A Lock resource. Can only be owned by one user at a time.
@@ -125,6 +127,7 @@ class Lock:
         """
         Input: IP of requester
         Output: Bool for success or failure
+        Details: Requesting will hang if the lock is already owned
         """
         if self.owner_ip == "" or self.owner_ip == requester_ip:
             self.owner_ip = requester_ip
@@ -150,6 +153,7 @@ class Lock:
             return False
 
 
+# Barrier object
 class Barrier:
     """
     A Barrier resource to provide users with synchronization. Users "subscribe" 
